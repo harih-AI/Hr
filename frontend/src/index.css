@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  AI HR SUPER PLATFORM - DESIGN SYSTEM
+  Palette: Platinum Mist (90%) + Verdant Luxe (accent)
+  All colors in HSL format
+*/
+
+@layer base {
+  :root {
+    /* Platinum Mist - Primary Palette (90% usage) */
+    --background: 210 7% 96%;           /* #F5F6F7 */
+    --foreground: 217 8% 18%;           /* #2B2E33 */
+    
+    --card: 0 0% 100%;                  /* White cards */
+    --card-foreground: 217 8% 18%;      /* #2B2E33 */
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 8% 18%;
+    
+    /* Primary - Brand Purple #8017E1 */
+    --primary: 270 82% 49%;             /* #8017E1 */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Card borders/dividers */
+    --secondary: 214 6% 77%;            /* #C1C4C8 */
+    --secondary-foreground: 217 8% 18%;
+    
+    /* Muted - Secondary text */
+    --muted: 210 7% 96%;
+    --muted-foreground: 216 4% 50%;     /* #7B7F85 */
+    
+    /* Accent - Interactive elements */
+    --accent: 214 6% 92%;
+    --accent-foreground: 217 8% 18%;
+    
+    /* Verdant Luxe - Success/Trust palette */
+    --success: 145 29% 51%;             /* #5DA87A */
+    --success-foreground: 0 0% 100%;
+    --verified: 148 40% 30%;            /* #2E6B46 */
+    --verified-foreground: 0 0% 100%;
+    
+    /* Destructive/Warning */
+    --destructive: 0 65% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 217 8% 18%;
+    
+    /* UI Elements */
+    --border: 214 6% 85%;
+    --input: 214 6% 85%;
+    --ring: 270 82% 49%;
+    
+    --radius: 0.5rem;
+    
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 217 8% 18%;
+    --sidebar-primary: 270 82% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 7% 96%;
+    --sidebar-accent-foreground: 217 8% 18%;
+    --sidebar-border: 214 6% 90%;
+    --sidebar-ring: 270 82% 49%;
+    
+    /* Chart colors */
+    --chart-1: 270 82% 49%;
+    --chart-2: 145 29% 51%;
+    --chart-3: 148 40% 30%;
+    --chart-4: 216 4% 50%;
+    --chart-5: 217 8% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  /* Typography scale */
+  h1 {
+    @apply text-4xl font-semibold tracking-tight text-foreground;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold tracking-tight text-foreground;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold text-foreground;
+  }
+  
+  h4 {
+    @apply text-xl font-medium text-foreground;
+  }
+  
+  h5 {
+    @apply text-lg font-medium text-foreground;
+  }
+  
+  h6 {
+    @apply text-base font-medium text-foreground;
+  }
+}
+
+@layer components {
+  /* Card styles */
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border shadow-sm;
+  }
+  
+  .card-interactive {
+    @apply card-elevated transition-all duration-200 hover:shadow-md hover:border-secondary;
+  }
+  
+  /* Metric display */
+  .metric-value {
+    @apply text-3xl font-semibold text-foreground tracking-tight;
+  }
+  
+  .metric-label {
+    @apply text-sm font-medium text-muted-foreground;
+  }
+  
+  .metric-delta-positive {
+    @apply text-success text-sm font-medium;
+  }
+  
+  .metric-delta-negative {
+    @apply text-destructive text-sm font-medium;
+  }
+  
+  /* Status badges */
+  .badge-success {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success;
+  }
+  
+  .badge-verified {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-verified/10 text-verified;
+  }
+  
+  .badge-warning {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning;
+  }
+  
+  .badge-neutral {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground;
+  }
+  
+  /* AI Agent status */
+  .ai-status-active {
+    @apply w-2 h-2 rounded-full bg-success animate-pulse;
+  }
+  
+  .ai-status-idle {
+    @apply w-2 h-2 rounded-full bg-secondary;
+  }
+  
+  /* Navigation */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground;
+  }
+  
+  .nav-item-active {
+    @apply nav-item bg-accent text-foreground;
+  }
+  
+  /* Focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  /* Enterprise table */
+  .table-header {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+  
+  .table-cell {
+    @apply text-sm text-foreground py-3;
+  }
+  
+  /* Skeleton loading */
+  .skeleton {
+    @apply animate-pulse bg-secondary/50 rounded;
+  }
+}
+
+@layer utilities {
+  /* Spacing utilities */
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply max-w-5xl mx-auto;
+  }
+  
+  .container-wide {
+    @apply max-w-7xl mx-auto;
+  }
+  
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Grid utilities */
+  .grid-dashboard {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+  }
+  
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

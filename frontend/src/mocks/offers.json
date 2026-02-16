@@ -1,0 +1,35 @@
+[
+    {
+        "id": "off_01",
+        "applicationId": "app_03",
+        "jobTitle": "Engineering Manager",
+        "company": "GrowthScale",
+        "status": "Pending",
+        "details": {
+            "baseSalary": "$195,000",
+            "bonus": "15% Annual",
+            "equity": "$250,000 / 4 years",
+            "startDate": "2024-04-15"
+        },
+        "documents": [
+            {
+                "name": "Offer Letter",
+                "id": "doc_01"
+            },
+            {
+                "name": "Benefit Summary",
+                "id": "doc_02"
+            }
+        ],
+        "history": [
+            {
+                "event": "Offer Generated",
+                "date": "2024-03-15"
+            },
+            {
+                "event": "Details Sent",
+                "date": "2024-03-16"
+            }
+        ]
+    }
+]

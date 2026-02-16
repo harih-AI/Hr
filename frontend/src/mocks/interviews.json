@@ -1,0 +1,35 @@
+[
+    {
+        "id": "int_01",
+        "applicationId": "app_01",
+        "jobTitle": "Senior Frontend Architect",
+        "company": "AI HR Solutions",
+        "type": "Technical Panel",
+        "startTime": "2024-03-20T14:00:00Z",
+        "duration": 60,
+        "location": "Zoom Video",
+        "joinLink": "https://zoom.us/j/mock-meeting",
+        "interviewer": "Sarah Chen, Staff Engineer",
+        "prepMaterials": [
+            {
+                "title": "Architecture Overview",
+                "url": "#"
+            },
+            {
+                "title": "System Design Guide",
+                "url": "#"
+            }
+        ],
+        "aiInsights": {
+            "focusAreas": [
+                "Micro-frontends",
+                "Design Systems",
+                "Web Performance"
+            ],
+            "likelyQuestions": [
+                "How do you handle state synchronization across micro-frontends?",
+                "Describe your process for building a themeable UI component library."
+            ]
+        }
+    }
+]

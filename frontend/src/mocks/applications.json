@@ -1,0 +1,55 @@
+[
+    {
+        "id": "app_01",
+        "jobId": "job_01",
+        "jobTitle": "Senior Frontend Architect",
+        "company": "AI HR Solutions",
+        "status": "Interviewing",
+        "appliedDate": "2024-03-12T09:00:00Z",
+        "currentStage": "Technical Panel",
+        "timeline": [
+            {
+                "stage": "Application Submitted",
+                "date": "2024-03-12",
+                "status": "completed"
+            },
+            {
+                "stage": "AI Screening",
+                "date": "2024-03-13",
+                "status": "completed",
+                "score": 98
+            },
+            {
+                "stage": "Recruiter Screen",
+                "date": "2024-03-15",
+                "status": "completed"
+            },
+            {
+                "stage": "Technical Panel",
+                "date": "2024-03-20",
+                "status": "current"
+            }
+        ]
+    },
+    {
+        "id": "app_02",
+        "jobId": "job_03",
+        "jobTitle": "Product Designer",
+        "company": "DesignFlow",
+        "status": "Review",
+        "appliedDate": "2024-03-05T11:00:00Z",
+        "currentStage": "Portfolio Review",
+        "timeline": [
+            {
+                "stage": "Application Submitted",
+                "date": "2024-03-05",
+                "status": "completed"
+            },
+            {
+                "stage": "Portfolio Review",
+                "date": "2024-03-06",
+                "status": "current"
+            }
+        ]
+    }
+]

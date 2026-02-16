@@ -1,0 +1,36 @@
+[
+    {
+        "id": "job_01",
+        "title": "Senior Frontend Architect",
+        "company": "AI HR Solutions",
+        "location": "Remote",
+        "salary": "$160k - $220k",
+        "type": "Full-time",
+        "postedAt": "2024-03-10T10:00:00Z",
+        "description": "We are looking for a visionary Frontend Architect to lead our candidate portal development.",
+        "skills": [
+            "React",
+            "Next.js",
+            "TypeScript"
+        ],
+        "aiMatchScore": 98,
+        "aiMatchReasoning": "Your deep experience with Next.js and architectural patterns perfectly matches our tech stack requirements."
+    },
+    {
+        "id": "job_02",
+        "title": "Staff Engineer, UI Platform",
+        "company": "CloudScale",
+        "location": "San Francisco, CA",
+        "salary": "$180k - $240k",
+        "type": "Full-time",
+        "postedAt": "2024-03-08T15:30:00Z",
+        "description": "Design and build the core UI libraries used by hundreds of developers across the company.",
+        "skills": [
+            "System Design",
+            "CSS",
+            "Performance"
+        ],
+        "aiMatchScore": 85,
+        "aiMatchReasoning": "Your history of building design systems and optimizing performance is highly relevant, though we require more GraphQL experience."
+    }
+]

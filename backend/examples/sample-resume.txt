@@ -1,0 +1,55 @@
+John Doe
+Software Engineer
+
+Contact:
+Email: john.doe@email.com
+Phone: +1-555-0123
+Location: San Francisco, CA
+
+Professional Summary:
+Experienced Full-Stack Software Engineer with 5+ years of expertise in building scalable web applications using modern JavaScript frameworks. Proven track record of delivering high-quality code and leading technical initiatives.
+
+Technical Skills:
+- Frontend: React, TypeScript, Next.js, HTML5, CSS3, Tailwind CSS
+- Backend: Node.js, Express, Fastify, Python, Django
+- Databases: PostgreSQL, MongoDB, Redis
+- DevOps: Docker, Kubernetes, AWS, CI/CD
+- Tools: Git, VS Code, Jira, Figma
+
+Work Experience:
+
+Senior Software Engineer | TechCorp Inc. | 2021 - Present
+- Led development of microservices architecture serving 1M+ users
+- Implemented real-time features using WebSockets and Redis
+- Reduced API response time by 40% through optimization
+- Mentored 3 junior developers
+
+Software Engineer | StartupXYZ | 2019 - 2021
+- Built responsive web applications using React and Node.js
+- Designed and implemented RESTful APIs
+- Collaborated with product team on feature specifications
+- Participated in code reviews and agile ceremonies
+
+Junior Developer | WebSolutions LLC | 2018 - 2019
+- Developed frontend components using React
+- Fixed bugs and improved application performance
+- Worked with senior developers on complex features
+
+Education:
+Bachelor of Science in Computer Science
+University of California, Berkeley | 2014 - 2018
+GPA: 3.7/4.0
+
+Projects:
+- E-commerce Platform: Built full-stack e-commerce site with payment integration (Stripe)
+- Task Management App: Created real-time collaborative task manager using React and Firebase
+- API Gateway: Designed scalable API gateway handling 10K requests/second
+
+Certifications:
+- AWS Certified Solutions Architect - Associate (2022)
+- MongoDB Certified Developer (2021)
+
+Achievements:
+- Won "Best Innovation" award at TechCorp hackathon 2022
+- Contributed to 5+ open-source projects with 500+ GitHub stars
+- Speaker at local JavaScript meetup (2023)

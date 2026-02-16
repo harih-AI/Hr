@@ -1,0 +1,30 @@
+{
+    "status": "In Progress",
+    "completionPercentage": 35,
+    "tasks": [
+        {
+            "id": "task_1",
+            "title": "Welcome Documents",
+            "status": "completed",
+            "category": "required"
+        },
+        {
+            "id": "task_2",
+            "title": "Tax Identification",
+            "status": "completed",
+            "category": "legal"
+        },
+        {
+            "id": "task_3",
+            "title": "Hardware Preference",
+            "status": "pending",
+            "category": "it"
+        },
+        {
+            "id": "task_4",
+            "title": "Security Briefing",
+            "status": "pending",
+            "category": "training"
+        }
+    ]
+}

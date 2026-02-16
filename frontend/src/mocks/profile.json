@@ -1,0 +1,48 @@
+{
+    "id": "cand_01",
+    "firstName": "Alex",
+    "lastName": "Candidate",
+    "headline": "Senior Frontend Engineer | React & TypeScript Expert",
+    "summary": "Passionate about building scalable web applications with 8+ years of experience in the fintech and SaaS sectors.",
+    "location": "San Francisco, CA",
+    "phone": "+1 (555) 000-1111",
+    "skills": [
+        "React",
+        "TypeScript",
+        "Next.js",
+        "Tailwind CSS",
+        "Node.js",
+        "GraphQL",
+        "AWS"
+    ],
+    "experience": [
+        {
+            "id": "exp_1",
+            "company": "TechCorp",
+            "role": "Lead Frontend Engineer",
+            "period": "2020 - Present",
+            "description": "Architected the micro-frontend migration and led a team of 12 developers."
+        },
+        {
+            "id": "exp_2",
+            "company": "SaaSly",
+            "role": "Senior Developer",
+            "period": "2017 - 2020",
+            "description": "Optimized application performance by 40% and implemented a new design system."
+        }
+    ],
+    "education": [
+        {
+            "id": "edu_1",
+            "institution": "Stanford University",
+            "degree": "B.S. Computer Science",
+            "year": "2017"
+        }
+    ],
+    "links": {
+        "linkedin": "https://linkedin.com/in/alexcandidate",
+        "github": "https://github.com/alexcandidate",
+        "portfolio": "https://alex.dev"
+    },
+    "resumeUrl": "/docs/resume_alex.pdf"
+}
