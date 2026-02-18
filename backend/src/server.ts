@@ -92,7 +92,11 @@ const sessions = new Map<string, Session>();
 /**
  * Root route
  */
-fastify.get('/', async () => {
+fastify.get('/', async (request, reply) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    if (isProd) {
+        return reply.sendFile('index.html');
+    }
     return {
         message: 'Welcome to TalentScout AI Backend',
         status: 'active',
