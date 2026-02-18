@@ -7,7 +7,10 @@ const __dirname = path.dirname(__filename);
 
 import fs from 'fs';
 
-const dataDir = path.join(process.cwd(), 'data');
+// Look for Railway volume mount first, then local data folder
+const dataDir = process.env.DATA_PATH ||
+    (fs.existsSync('/app/data') ? '/app/data' : path.join(process.cwd(), 'data'));
+
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const dbPath = path.join(dataDir, 'talentscout.db');
