@@ -15,7 +15,8 @@ export async function hiringRoutes(fastify: any, options: { orchestrator?: Talen
         // Parse skills JSON
         const formattedCandidates = candidates.map((c: any) => ({
             ...c,
-            skills: JSON.parse(c.skills || '[]')
+            skills: JSON.parse(c.skills || '[]'),
+            links: JSON.parse(c.links || '{"linkedin":"","github":"","portfolio":""}')
         }));
 
         return {
@@ -66,20 +67,25 @@ export async function hiringRoutes(fastify: any, options: { orchestrator?: Talen
             const skills = analyzedData?.skills?.technical?.slice(0, 5) || ['React', 'Node.js'];
             const matchReason = analyzedData?.summary ? analyzedData.summary.substring(0, 100) + '...' : 'Analyzed by Talent Scout AI.';
             const resumeUrl = `/uploads/candidates/${data.filename}`;
+            const links = JSON.stringify({
+                linkedin: analyzedData?.links?.linkedin || '',
+                github: analyzedData?.links?.github || '',
+                portfolio: analyzedData?.links?.portfolio || ''
+            });
 
             const insert = db.prepare(`
-                INSERT INTO candidates (id, name, email, role, status, score, department, experience, skills, matchReason, resumeUrl)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO candidates (id, name, email, role, status, score, department, experience, skills, links, matchReason, resumeUrl)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
 
-            insert.run(id, name, email, role, status, score, department, experience, JSON.stringify(skills), matchReason, resumeUrl);
+            insert.run(id, name, email, role, status, score, department, experience, JSON.stringify(skills), links, matchReason, resumeUrl);
 
             return {
                 status: 200,
                 message: 'Resume uploaded and analyzed by AI',
                 data: {
                     candidateId: id,
-                    candidate: { id, name, email, role, status, score, department, experience, skills, matchReason, resumeUrl }
+                    candidate: { id, name, email, role, status, score, department, experience, skills, links, matchReason, resumeUrl }
                 }
             };
         } catch (err) {
@@ -93,7 +99,8 @@ export async function hiringRoutes(fastify: any, options: { orchestrator?: Talen
         const candidates = db.prepare('SELECT * FROM candidates ORDER BY score DESC').all();
         const formattedCandidates = candidates.map((c: any) => ({
             ...c,
-            skills: JSON.parse(c.skills || '[]')
+            skills: JSON.parse(c.skills || '[]'),
+            links: JSON.parse(c.links || '{"linkedin":"","github":"","portfolio":""}')
         }));
 
         return {

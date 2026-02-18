@@ -71,7 +71,12 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
         const existingCandidate = db.prepare('SELECT id, score FROM candidates WHERE email = ?').get(finalProfile.email) as any;
 
         const candidateId = existingCandidate ? existingCandidate.id : 'c' + Date.now();
-        const score = existingCandidate?.score || 85; // Use existing AI score or default
+
+        // Calculate dynamic AI score based on experience and profile completeness
+        const baseScore = 70;
+        const experienceBonus = Math.min((finalProfile.totalYearsOfExperience || 0) * 3, 20);
+        const completenessBonus = (finalProfile.summary?.length > 100 ? 5 : 0) + (finalProfile.skills?.technical?.length > 3 ? 3 : 0);
+        const score = existingCandidate?.score || (baseScore + experienceBonus + completenessBonus);
 
         const candidateData = {
             id: candidateId,

@@ -90,6 +90,18 @@ export function initDB() {
         )
     `).run();
 
+    // Check for links column in candidates
+    const candInfo = db.prepare("PRAGMA table_info(candidates)").all() as any[];
+    if (!candInfo.some(col => col.name === 'links')) {
+        db.prepare('ALTER TABLE candidates ADD COLUMN links TEXT').run();
+    }
+
+    // Check for links column in profile
+    const profInfo = db.prepare("PRAGMA table_info(profile)").all() as any[];
+    if (!profInfo.some(col => col.name === 'links')) {
+        db.prepare('ALTER TABLE profile ADD COLUMN links TEXT').run();
+    }
+
     // Insert Default Candidate if empty
     const count = (db.prepare('SELECT COUNT(*) as count FROM candidates').get() as any).count;
     if (count === 0) {
