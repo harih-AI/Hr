@@ -46,19 +46,15 @@ await fastify.register(multipart, {
     },
 });
 
-await fastify.register(staticPlugin, {
-    root: path.join(process.cwd(), 'data', 'uploads'),
-    prefix: '/uploads/', // URL prefix
-});
-
 // Serve frontend in production
 const isProd = process.env.NODE_ENV === 'production';
+const frontendDist = path.join(process.cwd(), '../frontend/dist');
+
 if (isProd) {
-    const frontendDist = path.join(process.cwd(), '../frontend/dist');
     await fastify.register(staticPlugin, {
         root: frontendDist,
         prefix: '/',
-        decorateReply: false // Already decorated by the uploads static plugin
+        index: false, // Handle index serving manually via routes
     });
 
     // Handle SPA routing
@@ -69,6 +65,12 @@ if (isProd) {
         return reply.sendFile('index.html');
     });
 }
+
+await fastify.register(staticPlugin, {
+    root: path.join(process.cwd(), 'data', 'uploads'),
+    prefix: '/uploads/',
+    decorateReply: !isProd // Only decorate if not already decorated by frontend
+});
 
 // Initialize orchestrator
 const orchestrator = new TalentScoutOrchestrator();
@@ -93,7 +95,6 @@ const sessions = new Map<string, Session>();
  * Root route
  */
 fastify.get('/', async (request, reply) => {
-    const isProd = process.env.NODE_ENV === 'production';
     if (isProd) {
         return reply.sendFile('index.html');
     }
