@@ -35,6 +35,7 @@ export function initDB() {
             department TEXT,
             experience TEXT,
             skills TEXT, -- JSON string
+            links TEXT, -- JSON string
             matchReason TEXT,
             resumeUrl TEXT
         )
@@ -50,6 +51,7 @@ export function initDB() {
             headline TEXT,
             phone TEXT,
             summary TEXT,
+            links TEXT, -- JSON string
             avatar TEXT,
             resumeUrl TEXT,
             status TEXT,

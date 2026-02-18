@@ -27,6 +27,11 @@ export interface CandidateProfile {
     certifications: Certification[];
     achievements: string[];
     totalYearsOfExperience: number;
+    links?: {
+        linkedin?: string;
+        github?: string;
+        portfolio?: string;
+    };
     weakClaims: string[];
     exaggerations: string[];
 }

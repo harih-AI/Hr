@@ -15,6 +15,9 @@ import {
   Clock,
   Loader2,
   Sparkles,
+  Linkedin,
+  Github,
+  Globe,
 } from "lucide-react";
 import * as hiringService from "@/services/hiring";
 
@@ -358,13 +361,49 @@ export default function Hiring() {
                 <div>
                   <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Key Skills</h4>
                   <div className="flex flex-wrap gap-2">
-                    {(selectedCandidate.skills || ['TypeScript', 'React', 'Node.js', 'PostgreSQL']).map((skill: string) => (
+                    {(typeof selectedCandidate.skills === 'string' ? JSON.parse(selectedCandidate.skills) : (selectedCandidate.skills || ['TypeScript', 'React', 'Node.js', 'PostgreSQL'])).map((skill: string) => (
                       <span key={skill} className="px-2.5 py-1 rounded-md bg-primary/5 border border-primary/10 text-primary text-xs font-medium">
                         {skill}
                       </span>
                     ))}
                   </div>
                 </div>
+
+                {selectedCandidate.links && (
+                  <div>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Professional Links</h4>
+                    <div className="flex gap-4">
+                      {(() => {
+                        try {
+                          const links = typeof selectedCandidate.links === 'string'
+                            ? JSON.parse(selectedCandidate.links)
+                            : selectedCandidate.links;
+                          return (
+                            <>
+                              {links.linkedin && (
+                                <a href={links.linkedin.startsWith('http') ? links.linkedin : `https://${links.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
+                                  <Linkedin className="w-4 h-4" /> LinkedIn
+                                </a>
+                              )}
+                              {links.github && (
+                                <a href={links.github.startsWith('http') ? links.github : `https://${links.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-[#24292e] hover:underline">
+                                  <Github className="w-4 h-4" /> GitHub
+                                </a>
+                              )}
+                              {links.portfolio && (
+                                <a href={links.portfolio.startsWith('http') ? links.portfolio : `https://${links.portfolio}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-green-600 hover:underline">
+                                  <Globe className="w-4 h-4" /> Portfolio
+                                </a>
+                              )}
+                            </>
+                          );
+                        } catch (e) {
+                          return null;
+                        }
+                      })()}
+                    </div>
+                  </div>
+                )}
 
                 <div className="pt-4 border-t border-border flex items-center justify-between">
                   <div className="flex items-center gap-2">

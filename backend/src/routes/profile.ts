@@ -25,7 +25,8 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
         return {
             ...profile,
             skills: JSON.parse(profile.skills || '{"technical":[],"soft":[],"tools":[]}'),
-            experience: JSON.parse(profile.experience || '[]')
+            experience: JSON.parse(profile.experience || '[]'),
+            links: JSON.parse(profile.links || '{"linkedin":"","github":"","portfolio":""}')
         };
     };
 
@@ -48,7 +49,7 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
         const update = db.prepare(`
             UPDATE profile 
             SET firstName = ?, lastName = ?, headline = ?, summary = ?, phone = ?, 
-                skills = ?, experience = ?, totalYearsOfExperience = ?
+                skills = ?, experience = ?, totalYearsOfExperience = ?, links = ?
             WHERE id = ?
         `);
 
@@ -61,8 +62,44 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
             JSON.stringify(data.skills || profile.skills),
             JSON.stringify(data.experience || profile.experience),
             data.totalYearsOfExperience || profile.totalYearsOfExperience,
+            JSON.stringify(data.links || profile.links),
             profile.id
         );
+
+        // Sync with candidates table to make it visible in the HR Console
+        const finalProfile = getActiveProfile();
+        const existingCandidate = db.prepare('SELECT id, score FROM candidates WHERE email = ?').get(finalProfile.email) as any;
+
+        const candidateId = existingCandidate ? existingCandidate.id : 'c' + Date.now();
+        const score = existingCandidate?.score || 85; // Use existing AI score or default
+
+        const candidateData = {
+            id: candidateId,
+            name: `${finalProfile.firstName} ${finalProfile.lastName}`,
+            role: finalProfile.headline || 'Software Engineer',
+            status: 'Applied',
+            score: score,
+            department: finalProfile.department || 'Engineering',
+            email: finalProfile.email,
+            experience: finalProfile.totalYearsOfExperience ? `${finalProfile.totalYearsOfExperience} years` : '0 years',
+            skills: JSON.stringify(finalProfile.skills?.technical || []),
+            links: JSON.stringify(finalProfile.links),
+            matchReason: finalProfile.summary || 'Profile updated by candidate.',
+            resumeUrl: finalProfile.resumeUrl
+        };
+
+        if (existingCandidate) {
+            db.prepare(`
+                UPDATE candidates 
+                SET name = ?, role = ?, status = ?, score = ?, department = ?, experience = ?, skills = ?, links = ?, matchReason = ?, resumeUrl = ?
+                WHERE id = ?
+            `).run(candidateData.name, candidateData.role, candidateData.status, candidateData.score, candidateData.department, candidateData.experience, candidateData.skills, candidateData.links, candidateData.matchReason, candidateData.resumeUrl, candidateId);
+        } else {
+            db.prepare(`
+                INSERT INTO candidates (id, name, email, role, status, score, department, experience, skills, links, matchReason, resumeUrl)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run(candidateData.id, candidateData.name, candidateData.email, candidateData.role, candidateData.status, candidateData.score, candidateData.department, candidateData.experience, candidateData.skills, candidateData.links, candidateData.matchReason, candidateData.resumeUrl);
+        }
 
         return { success: true, profile: getActiveProfile() };
     });
@@ -110,7 +147,7 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
                     UPDATE profile 
                     SET firstName = ?, lastName = ?, summary = ?, skills = ?, 
                         experience = ?, totalYearsOfExperience = ?, headline = ?, 
-                        resumeUrl = ?, status = ?
+                        links = ?, resumeUrl = ?, status = ?
                     WHERE id = ?
                 `);
 
@@ -122,6 +159,7 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
                     JSON.stringify(analyzedProfile.experience || profile.experience),
                     analyzedProfile.totalYearsOfExperience || profile.totalYearsOfExperience,
                     analyzedProfile.headline || profile.headline,
+                    JSON.stringify(analyzedProfile.links || profile.links),
                     resumeUrl,
                     'Applied',
                     profile.id
@@ -130,43 +168,12 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
                 db.prepare('UPDATE profile SET resumeUrl = ? WHERE id = ?').run(resumeUrl, profile.id);
             }
 
-            // Sync with candidates table
-            const finalProfile = getActiveProfile();
-            const existingCandidate = db.prepare('SELECT id FROM candidates WHERE email = ?').get(finalProfile.email) as any;
-
-            const candidateId = existingCandidate ? existingCandidate.id : 'c' + Date.now();
-            const candidateData = {
-                id: candidateId,
-                name: `${finalProfile.firstName} ${finalProfile.lastName}`,
-                role: finalProfile.headline || 'Software Engineer',
-                status: 'Applied',
-                score: analyzedProfile?.score || 85,
-                department: finalProfile.department || 'Engineering',
-                email: finalProfile.email,
-                experience: finalProfile.totalYearsOfExperience ? `${finalProfile.totalYearsOfExperience} years` : '0 years',
-                skills: JSON.stringify(finalProfile.skills?.technical || []),
-                matchReason: analyzedProfile?.summary || finalProfile.summary || 'Analyzed from uploaded resume.',
-                resumeUrl: resumeUrl
-            };
-
-            if (existingCandidate) {
-                db.prepare(`
-                    UPDATE candidates 
-                    SET name = ?, role = ?, status = ?, score = ?, department = ?, experience = ?, skills = ?, matchReason = ?, resumeUrl = ?
-                    WHERE id = ?
-                `).run(candidateData.name, candidateData.role, candidateData.status, candidateData.score, candidateData.department, candidateData.experience, candidateData.skills, candidateData.matchReason, candidateData.resumeUrl, candidateId);
-            } else {
-                db.prepare(`
-                    INSERT INTO candidates (id, name, email, role, status, score, department, experience, skills, matchReason, resumeUrl)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `).run(candidateData.id, candidateData.name, candidateData.email, candidateData.role, candidateData.status, candidateData.score, candidateData.department, candidateData.experience, candidateData.skills, candidateData.matchReason, candidateData.resumeUrl);
-            }
-
+            // Return the updated profile for the frontend to auto-fill
             return {
                 success: true,
                 url: resumeUrl,
                 profile: getActiveProfile(),
-                message: 'Resume uploaded and analyzed successfully'
+                message: 'Resume uploaded and analyzed successfully. Summary: ' + (analyzedProfile?.summary || 'Extracted basic details.')
             };
         } catch (err) {
             fastify.log.error(err);

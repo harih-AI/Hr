@@ -24,13 +24,16 @@ export default function CandidateProfile() {
         }
     }, [profile, reset]);
 
-    const onSubmit = (data: any) => {
-        updateProfile(data);
+    const onSubmit = async (data: any) => {
+        await updateProfile(data);
+        alert("Profile updated successfully! Your application has been sent to the HR Hiring Console.");
     };
 
     const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            await uploadResume(e.target.files[0]);
+            const file = e.target.files[0];
+            console.log("Uploading and analyzing resume:", file.name);
+            await uploadResume(file);
         }
     };
 

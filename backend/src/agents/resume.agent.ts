@@ -30,9 +30,10 @@ RULES:
 5. Detect exaggerations (unrealistic claims, inflated numbers)
 6. Calculate total years of experience accurately
 7. Categorize skills into technical, soft, and tools
-8. Extract a professional "headline" and "summary"
-9. Be objective and evidence-based
-10. Do not make assumptions beyond what's written
+8. Extract professional links (LinkedIn, GitHub, Portfolio website) if available
+9. Extract a professional "headline" and "summary"
+10. Be objective and evidence-based
+11. Do not make assumptions beyond what's written
 
 OUTPUT: Valid JSON matching the CandidateProfile schema.`;
 
@@ -43,6 +44,7 @@ ${resumeText}
 
 Extract:
 - Personal info (MUST include "name" key, plus email, phone, location)
+- Links (LinkedIn, GitHub, Portfolio)
 - Summary/objective
 - Skills (categorized as technical, soft, tools)
 - Work experience with details
@@ -65,12 +67,15 @@ Return ONLY valid JSON. Ensure the name is stored in the "name" field.`;
 
             // Handle potential nesting from LLM
             const personalInfo = profile.personalInfo || profile.personalContact || {};
+            const links = profile.links || profile.socialLinks || profile.professionalLinks || {};
+
             const candidateProfile: CandidateProfile = {
                 name: profile.name || personalInfo.name || personalInfo.fullName || 'Unknown Candidate',
                 email: profile.email || personalInfo.email || '',
                 phone: profile.phone || personalInfo.phone || '',
                 location: profile.location || personalInfo.location || '',
                 summary: profile.summary || '',
+                headline: profile.headline || '',
                 skills: profile.skills || { technical: [], soft: [], tools: [] },
                 experience: profile.experience || [],
                 education: profile.education || [],
@@ -78,6 +83,11 @@ Return ONLY valid JSON. Ensure the name is stored in the "name" field.`;
                 certifications: profile.certifications || [],
                 achievements: profile.achievements || [],
                 totalYearsOfExperience: profile.totalYearsOfExperience || 0,
+                links: {
+                    linkedin: links.linkedin || '',
+                    github: links.github || '',
+                    portfolio: links.portfolio || links.website || ''
+                },
                 weakClaims: profile.weakClaims || [],
                 exaggerations: profile.exaggerations || []
             };
