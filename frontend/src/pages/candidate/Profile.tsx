@@ -83,9 +83,28 @@ export default function CandidateProfile() {
                             <p className="text-[#7B7F85] font-medium">{profile?.headline}</p>
                         </div>
                     </div>
-                    <Button onClick={handleSubmit(onSubmit)} disabled={isLoading} className="bg-[#8017E1] hover:bg-[#8017E1]/90 h-11 px-8 font-bold">
-                        {isLoading ? "Saving..." : "Save Changes"}
-                    </Button>
+                    <div className="flex gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                if (confirm("Reset profile for demo? This will clear current fields.")) {
+                                    updateProfile({
+                                        firstName: '', lastName: '', summary: '', headline: '', phone: '',
+                                        skills: { technical: [], soft: [], tools: [] },
+                                        experience: [],
+                                        status: 'Applied',
+                                        resumeUrl: null
+                                    });
+                                }
+                            }}
+                            className="h-11 px-6 font-semibold border-destructive text-destructive hover:bg-destructive/5"
+                        >
+                            Reset Profile
+                        </Button>
+                        <Button onClick={handleSubmit(onSubmit)} disabled={isLoading} className="bg-[#8017E1] hover:bg-[#8017E1]/90 h-11 px-8 font-bold">
+                            {isLoading ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </div>
                 </header>
 
                 <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>

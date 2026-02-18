@@ -1,13 +1,18 @@
 import type { FastifyInstance } from 'fastify';
+import db from '../db.js';
 
 export async function dashboardRoutes(fastify: FastifyInstance) {
     fastify.get('/kpis', async () => {
+        const totalCandidates = (db.prepare('SELECT COUNT(*) as count FROM candidates').get() as any).count;
+        const interviewingCount = (db.prepare("SELECT COUNT(*) as count FROM candidates WHERE status = 'Interviewing'").get() as any).count;
+        const avgScore = (db.prepare('SELECT AVG(score) as avg FROM candidates').get() as any).avg || 0;
+
         return {
             status: 200,
             data: [
-                { id: '1', title: 'Total Applications', value: 1254, trend: { value: 12, label: 'vs last month' }, status: 'success' },
-                { id: '2', title: 'Average Match Score', value: '78%', trend: { value: 5, label: 'improving' }, status: 'success' },
-                { id: '3', title: 'Candidates in Interview', value: 42, subtitle: 'Across 12 open roles', status: 'neutral' },
+                { id: '1', title: 'Total Applications', value: totalCandidates, trend: { value: 12, label: 'vs last month' }, status: 'success' },
+                { id: '2', title: 'Average Match Score', value: `${Math.round(avgScore)}%`, trend: { value: 5, label: 'improving' }, status: 'success' },
+                { id: '3', title: 'Candidates in Interview', value: interviewingCount, subtitle: 'Live Pipeline', status: 'neutral' },
                 { id: '4', title: 'Time to Hire', value: '18 days', trend: { value: -2, label: 'days faster' }, status: 'success' }
             ]
         };
@@ -55,16 +60,35 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
 
     fastify.get('/charts/:type', async (request: any) => {
         const { type } = request.params;
+        if (type === 'hiring') {
+            return {
+                status: 200,
+                data: [
+                    { label: 'Jan', applications: 400, hires: 24 },
+                    { label: 'Feb', applications: 300, hires: 13 },
+                    { label: 'Mar', applications: 500, hires: 98 },
+                    { label: 'Apr', applications: 278, hires: 39 },
+                    { label: 'May', applications: 189, hires: 48 },
+                    { label: 'Jun', applications: 239, hires: 38 }
+                ]
+            };
+        }
+        if (type === 'attrition') {
+            return {
+                status: 200,
+                data: [
+                    { label: 'Jan', rate: 1.2 },
+                    { label: 'Feb', rate: 1.5 },
+                    { label: 'Mar', rate: 1.1 },
+                    { label: 'Apr', rate: 2.1 },
+                    { label: 'May', rate: 1.8 },
+                    { label: 'Jun', rate: 1.4 }
+                ]
+            };
+        }
         return {
             status: 200,
-            data: [
-                { label: 'Jan', value: 400, growth: 240 },
-                { label: 'Feb', value: 300, growth: 139 },
-                { label: 'Mar', value: 200, growth: 980 },
-                { label: 'Apr', value: 278, growth: 390 },
-                { label: 'May', value: 189, growth: 480 },
-                { label: 'Jun', value: 239, growth: 380 }
-            ]
+            data: []
         };
     });
 }

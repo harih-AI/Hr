@@ -13,11 +13,11 @@ export class LLMClient {
 
     constructor(
         baseUrl: string = 'https://openrouter.ai/api/v1',
-        model: string = 'google/gemini-2.0-flash-001',
+        model: string = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-001',
         timeout: number = 300000 // 5 minutes
     ) {
         this.baseUrl = baseUrl;
-        this.apiKey = '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';
+        this.apiKey = process.env.OPENROUTER_API_KEY || '';
         this.model = model;
         this.timeout = timeout;
     }

@@ -9,6 +9,7 @@ export interface ResumeData {
 }
 
 export interface CandidateProfile {
+    id?: string;
     name?: string;
     email?: string;
     phone?: string;

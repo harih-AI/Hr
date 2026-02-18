@@ -43,7 +43,7 @@ export default function CandidateDashboard() {
             <div className="space-y-8">
                 {/* Header */}
                 <header>
-                    <h1 className="text-3xl font-bold text-[#2B2E33]">Welcome back, {user?.name || "Alex"}</h1>
+                    <h1 className="text-3xl font-bold text-[#2B2E33]">Welcome back, {user?.name || profile?.firstName || "Hariharan"}</h1>
                     <p className="text-[#7B7F85] mt-1">Here's what's happening with your applications today.</p>
                 </header>
 

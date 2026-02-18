@@ -40,9 +40,9 @@ export const candidates = [
     },
     {
         id: 'c4',
-        name: 'John Doe',
+        name: 'Hariharan S',
         role: 'Full Stack Developer',
-        status: 'Applied',
+        status: 'Approved',
         score: 82,
         department: 'Engineering',
         email: 'john.doe@example.com',
@@ -81,8 +81,8 @@ export const defaultInterviewPlan = {
 
 export const profile = {
     id: 'u1',
-    firstName: 'John',
-    lastName: 'Doe',
+    firstName: 'Hariharan',
+    lastName: 'S',
     email: 'john.doe@example.com',
     headline: 'Full Stack Developer | AI Enthusiast',
     phone: '+1 234 567 890',
@@ -94,7 +94,7 @@ export const profile = {
         portfolio: 'johndoe.dev'
     },
     resumeUrl: '/uploads/john_doe_resume.pdf' as string | null,
-    status: 'Applied',
+    status: 'Approved',
     skills: {
         technical: ['React', 'Node.js', 'TypeScript', 'Python', 'AWS', 'Docker'],
         soft: ['Leadership', 'Communication'],

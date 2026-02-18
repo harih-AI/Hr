@@ -6,25 +6,22 @@ node_modules/
 # Testing
 coverage/
 
-# Production
+# Production Build
 dist/
 build/
+.next/
 
-# IDEs and Editors
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Environment
+# Environment Variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.env*
+
+# Persistence (DB & Uploads) - DO NOT PUSH THESE
+backend/data/
+talentscout.db
 
 # Logs
 npm-debug.log*
@@ -32,15 +29,18 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 
-# OS
+# Editor/System Files
+.vscode/
+.idea/
 .DS_Store
-Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+talentscout.code-workspace
 
-# Project-specific
-backend/dist/
-frontend/dist/
-resumes/*.pdf
-resumes/*.txt
-!resumes/sample.txt
-backend/resumes/*
-!backend/resumes/README.md
+# OS Files
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini

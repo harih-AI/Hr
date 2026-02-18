@@ -1,3 +1,4 @@
+import 'dotenv/config';
 // ============================================
 // FASTIFY SERVER - API ENDPOINTS
 // ============================================
@@ -11,16 +12,24 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { TalentScoutOrchestrator } from './core/orchestrator.js';
 import { Logger } from './utils/logger.js';
+import db from './db.js';
 import type { CandidateProfile, JobProfile, MatchAnalysis, InterviewAnswer, InterviewPlan } from './core/types.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { agentRoutes } from './routes/agents.js';
 import { hiringRoutes } from './routes/hiring.js';
 import { profileRoutes } from './routes/profile.js';
 import { interviewRoutes } from './routes/interviews.js';
+import { peopleRoutes } from './routes/people.js';
+import { reportsRoutes } from './routes/reports.js';
 import { defaultInterviewPlan } from './data.js';
+import { initDB } from './db.js';
 
 const logger = new Logger('Server');
 const fastify = Fastify({ logger: false });
+
+fastify.addHook('onRequest', async (request, reply) => {
+    logger.info(`Incoming Request: ${request.method} ${request.url}`);
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,9 +47,28 @@ await fastify.register(multipart, {
 });
 
 await fastify.register(staticPlugin, {
-    root: path.join(process.cwd(), 'uploads'),
+    root: path.join(process.cwd(), 'data', 'uploads'),
     prefix: '/uploads/', // URL prefix
 });
+
+// Serve frontend in production
+const isProd = process.env.NODE_ENV === 'production';
+if (isProd) {
+    const frontendDist = path.join(process.cwd(), '../frontend/dist');
+    await fastify.register(staticPlugin, {
+        root: frontendDist,
+        prefix: '/',
+        decorateReply: false // Already decorated by the uploads static plugin
+    });
+
+    // Handle SPA routing
+    fastify.setNotFoundHandler((request, reply) => {
+        if (request.url.startsWith('/api')) {
+            return reply.status(404).send({ error: 'API route not found' });
+        }
+        return reply.sendFile('index.html');
+    });
+}
 
 // Initialize orchestrator
 const orchestrator = new TalentScoutOrchestrator();
@@ -113,9 +141,11 @@ fastify.get('/api', async () => {
 // Register specialized routes
 await fastify.register(dashboardRoutes, { prefix: '/api/dashboard' });
 await fastify.register(agentRoutes, { prefix: '/api/agents' });
-await fastify.register(hiringRoutes, { prefix: '/api/hiring' });
+await fastify.register(hiringRoutes, { prefix: '/api/hiring', orchestrator });
 await fastify.register(profileRoutes, { prefix: '/api/profile', orchestrator });
 await fastify.register(interviewRoutes, { prefix: '/api/interviews' });
+await fastify.register(peopleRoutes, { prefix: '/api/people' });
+await fastify.register(reportsRoutes, { prefix: '/api/reports' });
 
 /**
  * System info
@@ -205,15 +235,9 @@ fastify.post('/api/ai-interview/start-session', async (request, reply) => {
             candidateProfile = result?.candidateProfile;
             jobProfile = result?.jobProfile;
         } catch (aiError: any) {
-            const isTimeout = aiError.message.includes('timed out');
-            if (resumeText && resumeText.length > 50) {
-                logger.error(`AI Evaluation failed for personalized interview (Length: ${resumeText.length}): ${aiError.message}`);
-                // Only throw if it's NOT a timeout
-                if (!isTimeout) {
-                    throw new Error(`AI Agent failed: ${aiError.message}`);
-                }
-            }
-            logger.warn(`AI Evaluation skipped/failed (${aiError.message}) - using mission-critical fallback.`);
+            logger.error(`AI Evaluation failed for personalized interview: ${aiError.message}`);
+            logger.warn(`Using mission-critical fallback plan.`);
+            // Never throw here in demo mode, always use fallback
         }
 
         const firstQuestion = plan?.sections?.[0]?.questions?.[0] || 'Tell me about yourself.';
@@ -277,7 +301,7 @@ fastify.post('/api/ai-interview/start-session', async (request, reply) => {
 
         logger.info(`Session initialized with ${sessionResponse.totalQuestions} questions.`);
         if (sessionResponse.questions.length > 0) {
-            logger.info(`First Question: "${sessionResponse.questions[0].question}"`);
+            logger.info(`First Question: "${sessionResponse.questions[0]?.question}"`);
         }
         return sessionResponse;
     } catch (error: any) {
@@ -341,9 +365,9 @@ fastify.get('/api/ai-interview/evaluate/:sessionId', async (request, reply) => {
         };
 
         // Save to interview results for HR dashboard
-        const { interviewResults } = await import('./routes/interviews.js');
-        interviewResults.set(session.candidateProfile?.id || session.candidateProfile?.email || sessionId, {
-            candidateId: session.candidateProfile?.id || session.candidateProfile?.email || sessionId,
+        const candidateId = session.candidateProfile?.id || session.candidateProfile?.email || sessionId;
+        const interviewData = {
+            candidateId,
             sessionId,
             candidateName: session.candidateProfile?.name || 'Unknown Candidate',
             candidateEmail: session.candidateProfile?.email || 'N/A',
@@ -352,7 +376,34 @@ fastify.get('/api/ai-interview/evaluate/:sessionId', async (request, reply) => {
             totalQuestions: session.answers.length,
             completedAt: new Date().toISOString(),
             status: evaluation.overallScore >= 70 ? 'Passed' : 'Needs Review'
-        });
+        };
+
+        const existing = db.prepare('SELECT candidateId FROM interview_results WHERE candidateId = ?').get(candidateId);
+
+        if (existing) {
+            const update = db.prepare(`
+                UPDATE interview_results 
+                SET sessionId = ?, candidateName = ?, candidateEmail = ?, evaluation = ?, 
+                    answers = ?, totalQuestions = ?, completedAt = ?, status = ?
+                WHERE candidateId = ?
+            `);
+            update.run(
+                interviewData.sessionId, interviewData.candidateName, interviewData.candidateEmail,
+                JSON.stringify(interviewData.evaluation), JSON.stringify(interviewData.answers),
+                interviewData.totalQuestions, interviewData.completedAt, interviewData.status,
+                candidateId
+            );
+        } else {
+            const insert = db.prepare(`
+                INSERT INTO interview_results (candidateId, sessionId, candidateName, candidateEmail, evaluation, answers, totalQuestions, completedAt, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            insert.run(
+                candidateId, interviewData.sessionId, interviewData.candidateName, interviewData.candidateEmail,
+                JSON.stringify(interviewData.evaluation), JSON.stringify(interviewData.answers),
+                interviewData.totalQuestions, interviewData.completedAt, interviewData.status
+            );
+        }
 
         logger.info(`Interview results saved for ${session.candidateProfile?.name || 'candidate'}`);
 
@@ -368,8 +419,11 @@ fastify.get('/api/ai-interview/evaluate/:sessionId', async (request, reply) => {
 
 const start = async () => {
     try {
-        const port = parseInt(process.env.PORT || '3000');
-        const host = process.env.HOST || 'localhost';
+        // Initialize database
+        initDB();
+
+        const port = parseInt(process.env.PORT || '3001');
+        const host = process.env.HOST || '0.0.0.0';
 
         await fastify.listen({ port, host });
 

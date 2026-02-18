@@ -1,45 +1,85 @@
 import type { FastifyInstance } from 'fastify';
 import '@fastify/multipart';
-import { profile, candidates } from '../data.js';
+import db from '../db.js';
 import * as fs from 'fs/promises';
 import { existsSync, mkdirSync } from 'fs';
 import * as path from 'path';
 import { TalentScoutOrchestrator } from '../core/orchestrator.js';
 
-export async function profileRoutes(fastify: FastifyInstance, options: { orchestrator?: TalentScoutOrchestrator }) {
+export async function profileRoutes(fastify: any, options: { orchestrator?: TalentScoutOrchestrator }) {
     const orchestrator = options.orchestrator;
+
+    // Helper to get or create active profile
+    const getActiveProfile = () => {
+        let profile = db.prepare('SELECT * FROM profile ORDER BY id LIMIT 1').get() as any;
+        if (!profile) {
+            // Create default profile if empty
+            db.prepare(`
+                INSERT INTO profile (id, firstName, lastName, email, headline, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `).run('u1', 'Hariharan', 'S', 'john.doe@example.com', 'Full Stack Developer', 'Active');
+            profile = db.prepare('SELECT * FROM profile WHERE id = ?').get('u1');
+        }
+
+        // Parse JSON fields
+        return {
+            ...profile,
+            skills: JSON.parse(profile.skills || '{"technical":[],"soft":[],"tools":[]}'),
+            experience: JSON.parse(profile.experience || '[]')
+        };
+    };
 
     // GET /api/profile
     fastify.get('/', async () => {
-        const candidate = candidates.find(c => c.email === profile.email);
+        const profile = getActiveProfile();
+        const candidate = db.prepare('SELECT status FROM candidates WHERE email = ?').get(profile.email) as any;
+
         return {
             ...profile,
-            status: candidate?.status || 'Active'
+            status: candidate?.status || profile.status || 'Active'
         };
     });
 
     // PUT /api/profile
-    fastify.put('/', async (request) => {
+    fastify.put('/', async (request: any) => {
         const data = request.body as any;
-        Object.assign(profile, data);
-        return { success: true, profile };
+        const profile = getActiveProfile();
+
+        const update = db.prepare(`
+            UPDATE profile 
+            SET firstName = ?, lastName = ?, headline = ?, summary = ?, phone = ?, 
+                skills = ?, experience = ?, totalYearsOfExperience = ?
+            WHERE id = ?
+        `);
+
+        update.run(
+            data.firstName || profile.firstName,
+            data.lastName || profile.lastName,
+            data.headline || profile.headline,
+            data.summary || profile.summary,
+            data.phone || profile.phone,
+            JSON.stringify(data.skills || profile.skills),
+            JSON.stringify(data.experience || profile.experience),
+            data.totalYearsOfExperience || profile.totalYearsOfExperience,
+            profile.id
+        );
+
+        return { success: true, profile: getActiveProfile() };
     });
 
     // POST /api/profile/resume
-    fastify.post('/resume', async (request, reply) => {
+    fastify.post('/resume', async (request: any, reply: any) => {
         try {
             const data = await request.file();
             if (!data) {
                 return reply.status(400).send({ error: 'No file uploaded' });
             }
 
-            const uploadDir = path.join(process.cwd(), 'uploads');
-            if (!existsSync(uploadDir)) mkdirSync(uploadDir);
+            const profile = getActiveProfile();
+            const uploadDir = path.join(process.cwd(), 'data', 'uploads');
+            if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
-            // Folder based on person
-            const fName = profile.firstName || 'Unknown';
-            const lName = profile.lastName || 'Candidate';
-            const personName = `${fName}_${lName}`.replace(/[^a-zA-Z0-9]/g, '_');
+            const personName = `${profile.firstName}_${profile.lastName}`.replace(/[^a-zA-Z0-9]/g, '_');
             const personDir = path.join(uploadDir, personName);
             if (!existsSync(personDir)) mkdirSync(personDir);
 
@@ -47,66 +87,85 @@ export async function profileRoutes(fastify: FastifyInstance, options: { orchest
             const buffer = await data.toBuffer();
             await fs.writeFile(filePath, buffer);
 
-            console.log(`Resume saved to: ${filePath}`);
+            const resumeUrl = `/uploads/${personName}/${data.filename}`;
+            let analyzedProfile: any = null;
 
-            // Analyze resume content
             if (orchestrator) {
-                const orch = orchestrator;
                 try {
-                    const loader = orch.getResumeLoader();
+                    const loader = orchestrator.getResumeLoader();
                     const result = await loader.loadResume(filePath);
-                    const resumeText = result.content;
-
-                    const analyzedProfile = await orch.analyzeResume(resumeText);
-
-                    // Update global profile with AI extracted data
-                    if (analyzedProfile) {
-                        profile.summary = analyzedProfile.summary || profile.summary || '';
-                        profile.skills = analyzedProfile.skills || profile.skills;
-                        profile.experience = analyzedProfile.experience || profile.experience;
-                        profile.totalYearsOfExperience = analyzedProfile.totalYearsOfExperience || profile.totalYearsOfExperience;
-                        profile.headline = analyzedProfile.headline || profile.headline || '';
-
-                        if (analyzedProfile.name) {
-                            const names = analyzedProfile.name.split(' ');
-                            profile.firstName = names[0];
-                            if (names.length > 1) profile.lastName = names.slice(1).join(' ');
-                        }
-                    }
+                    analyzedProfile = await orchestrator.analyzeResume(result.content);
                 } catch (err) {
-                    console.error('AI Resume Analysis failed, but file was saved:', err);
+                    console.error('AI Resume Analysis failed:', err);
                 }
             }
 
-            // Store the resume URL
-            profile.resumeUrl = `/uploads/${personName}/${data.filename}`;
+            // Update DB Profile with AI data
+            if (analyzedProfile) {
+                const names = (analyzedProfile.name || '').split(' ');
+                const fName = names[0] || profile.firstName;
+                const lName = names.slice(1).join(' ') || profile.lastName;
 
-            // Add/Update candidate in the list
-            let candidateIdx = candidates.findIndex(c => c.email === profile.email);
+                const update = db.prepare(`
+                    UPDATE profile 
+                    SET firstName = ?, lastName = ?, summary = ?, skills = ?, 
+                        experience = ?, totalYearsOfExperience = ?, headline = ?, 
+                        resumeUrl = ?, status = ?
+                    WHERE id = ?
+                `);
+
+                update.run(
+                    fName,
+                    lName,
+                    analyzedProfile.summary || profile.summary,
+                    JSON.stringify(analyzedProfile.skills || profile.skills),
+                    JSON.stringify(analyzedProfile.experience || profile.experience),
+                    analyzedProfile.totalYearsOfExperience || profile.totalYearsOfExperience,
+                    analyzedProfile.headline || profile.headline,
+                    resumeUrl,
+                    'Applied',
+                    profile.id
+                );
+            } else {
+                db.prepare('UPDATE profile SET resumeUrl = ? WHERE id = ?').run(resumeUrl, profile.id);
+            }
+
+            // Sync with candidates table
+            const finalProfile = getActiveProfile();
+            const existingCandidate = db.prepare('SELECT id FROM candidates WHERE email = ?').get(finalProfile.email) as any;
+
+            const candidateId = existingCandidate ? existingCandidate.id : 'c' + Date.now();
             const candidateData = {
-                id: candidateIdx !== -1 ? candidates[candidateIdx].id : 'c' + (candidates.length + 1),
-                name: `${profile.firstName} ${profile.lastName}`,
-                role: profile.headline || 'Software Engineer',
+                id: candidateId,
+                name: `${finalProfile.firstName} ${finalProfile.lastName}`,
+                role: finalProfile.headline || 'Software Engineer',
                 status: 'Applied',
                 score: 85,
                 department: 'Engineering',
-                email: profile.email,
-                experience: `${profile.totalYearsOfExperience} years`,
-                skills: (profile as any).skills?.technical || ['N/A'],
-                matchReason: 'Analyzed from uploaded resume.',
-                resumeUrl: profile.resumeUrl
+                email: finalProfile.email,
+                experience: `${finalProfile.totalYearsOfExperience || 0} years`,
+                skills: JSON.stringify(finalProfile.skills?.technical || []),
+                matchReason: finalProfile.summary ? (finalProfile.summary.substring(0, 150) + '...') : 'Analyzed from uploaded resume.',
+                resumeUrl: resumeUrl
             };
 
-            if (candidateIdx !== -1) {
-                candidates[candidateIdx] = candidateData;
+            if (existingCandidate) {
+                db.prepare(`
+                    UPDATE candidates 
+                    SET name = ?, role = ?, status = ?, score = ?, department = ?, experience = ?, skills = ?, matchReason = ?, resumeUrl = ?
+                    WHERE id = ?
+                `).run(candidateData.name, candidateData.role, candidateData.status, candidateData.score, candidateData.department, candidateData.experience, candidateData.skills, candidateData.matchReason, candidateData.resumeUrl, candidateId);
             } else {
-                candidates.push(candidateData);
+                db.prepare(`
+                    INSERT INTO candidates (id, name, email, role, status, score, department, experience, skills, matchReason, resumeUrl)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `).run(candidateData.id, candidateData.name, candidateData.email, candidateData.role, candidateData.status, candidateData.score, candidateData.department, candidateData.experience, candidateData.skills, candidateData.matchReason, candidateData.resumeUrl);
             }
 
             return {
                 success: true,
-                url: profile.resumeUrl,
-                profile: profile, // Return updated profile to frontend
+                url: resumeUrl,
+                profile: getActiveProfile(),
                 message: 'Resume uploaded and analyzed successfully'
             };
         } catch (err) {
