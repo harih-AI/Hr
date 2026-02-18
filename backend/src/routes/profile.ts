@@ -140,12 +140,12 @@ export async function profileRoutes(fastify: any, options: { orchestrator?: Tale
                 name: `${finalProfile.firstName} ${finalProfile.lastName}`,
                 role: finalProfile.headline || 'Software Engineer',
                 status: 'Applied',
-                score: 85,
-                department: 'Engineering',
+                score: analyzedProfile?.score || 85,
+                department: finalProfile.department || 'Engineering',
                 email: finalProfile.email,
-                experience: `${finalProfile.totalYearsOfExperience || 0} years`,
+                experience: finalProfile.totalYearsOfExperience ? `${finalProfile.totalYearsOfExperience} years` : '0 years',
                 skills: JSON.stringify(finalProfile.skills?.technical || []),
-                matchReason: finalProfile.summary ? (finalProfile.summary.substring(0, 150) + '...') : 'Analyzed from uploaded resume.',
+                matchReason: analyzedProfile?.summary || finalProfile.summary || 'Analyzed from uploaded resume.',
                 resumeUrl: resumeUrl
             };
 

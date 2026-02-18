@@ -45,7 +45,6 @@ export const interviewService = {
         return http.get('/interviews/stats/summary').then(r => r.data.data);
     },
 
-    // Save interview results
     save: (data: {
         candidateId: string;
         sessionId: string;
@@ -54,5 +53,14 @@ export const interviewService = {
         profile: any;
     }): Promise<InterviewResult> => {
         return http.post('/interviews/save', data).then(r => r.data.data);
+    },
+
+    // Save HR decision
+    recordDecision: (data: {
+        candidateId: string;
+        decision: string;
+        reasoning: string;
+    }): Promise<any> => {
+        return http.post('/interviews/decision', data).then(r => r.data);
     }
 };

@@ -32,14 +32,10 @@ export default function CandidateApproval() {
 
         try {
             // Save decision to backend
-            await fetch('http://localhost:3000/api/interviews/decision', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    candidateId,
-                    decision,
-                    reasoning: finalReasoning
-                })
+            await interviewService.recordDecision({
+                candidateId,
+                decision,
+                reasoning: finalReasoning
             });
 
             // Update local state
